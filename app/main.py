@@ -1,12 +1,21 @@
 from fastapi import FastAPI, status, HTTPException, Response
-from fastapi.params import Body
 from pydantic import BaseModel
 from typing import Optional
 from random import randint
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from decouple import config
+import time
 
+
+
+# Main app setting
 app = FastAPI()
 
 
+
+
+# Models Setting
 class Post(BaseModel):
     title: str
     content: str
@@ -14,6 +23,39 @@ class Post(BaseModel):
     rating: Optional[int] = None
 
 
+
+
+# Constants Settings
+DB_USER = config('DB_USER')
+DB_NAME = config('DB_NAME')
+DB_PASS = config('DB_PASS')
+
+
+# Establishing the DBs Connection
+while True:
+    try:
+        conn = psycopg2.connect(
+            host='localhost',
+            database=f"{DB_NAME}",
+            user=f"{DB_USER}",
+            password=f"{DB_PASS}",
+            cursor_factory=RealDictCursor
+            )
+        
+        cursor = conn.cursor()
+
+        print('Database connection was successful!')
+        break
+
+    except Exception as e:
+        print("Connecting to database failed")
+        print(f"Error: {e}")
+        time.sleep(2)
+
+
+
+
+# Dummy DB for Testing
 my_posts = [
     {"title": "post 1's title", "content": "post 1's content", "id":1},
     {"title": "favorite foods", "content": "I like pizza", "id":2}
@@ -21,6 +63,8 @@ my_posts = [
 
 
 
+
+# Utils Definition
 def find_post(id):
     for p in my_posts:
         if p['id'] == id:
@@ -34,22 +78,23 @@ def find_index_post(id):
 
 
 
+# ENDPOINTS DEFINITION
 
+# ROOT DIRECTORY
 @app.get("/")
 def root():
     return {"message": "World"}
 
 
-
-
+# GET ALL POSTS
 @app.get("/posts")
 def get_posts():
-    print(my_posts)
-    return {"data":my_posts}
+    cursor.execute("""SELECT * FROM posts""")
+    posts = cursor.fetchall()
+    return {"data":posts}
 
 
-
-
+# CREATE ONE POST
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_posts(new_post: Post):
     
@@ -62,8 +107,7 @@ def create_posts(new_post: Post):
     return {"data": post_dict}
 
 
-
-
+# GET ONE POST BY ID
 @app.get("/posts/{id}")
 def get_post(id: int):
 
@@ -74,8 +118,7 @@ def get_post(id: int):
     return {"post_detail":post}
 
 
-
-
+# DELETE ONE POST BY ID
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id:int):
 
@@ -89,8 +132,7 @@ def delete_post(id:int):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-
-
+# UPDATE ONE POST BY ID
 @app.put("/posts/{id}")
 def update_post(id: int, post: Post):
     
