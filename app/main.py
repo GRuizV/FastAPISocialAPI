@@ -55,26 +55,6 @@ while True:
 
 
 
-# Dummy DB for Testing
-my_posts = [
-    {"title": "post 1's title", "content": "post 1's content", "id":1},
-    {"title": "favorite foods", "content": "I like pizza", "id":2}
-]
-
-
-
-
-# Utils Definition
-def find_post(id):
-    for p in my_posts:
-        if p['id'] == id:
-            return p
-
-def find_index_post(id):
-    for i,p in enumerate(my_posts):
-        if p['id'] == id:
-            return i
-
 
 
 
@@ -89,29 +69,34 @@ def root():
 # GET ALL POSTS
 @app.get("/posts")
 def get_posts():
+
     cursor.execute("""SELECT * FROM posts""")
     posts = cursor.fetchall()
+
     return {"data":posts}
 
 
 # CREATE ONE POST
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_posts(new_post: Post):
+def create_posts(post: Post):
     
-    print(new_post)
-    post_dict = new_post.model_dump()
-    post_dict['id'] = randint(1,100000)
+    cursor.execute("""INSERT INTO posts (title, content, published) 
+	    VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
+    
+    new_post = cursor.fetchone()
+    conn.commit()
 
-    my_posts.append(post_dict)
-
-    return {"data": post_dict}
+    return {"data":new_post}
 
 
 # GET ONE POST BY ID
 @app.get("/posts/{id}")
 def get_post(id: int):
 
-    post = find_post(id)
+    cursor.execute("""SELECT * FROM posts WHERE id = %s""", (id,))
+    
+    post = cursor.fetchone()
+    
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id '{id}' was not found!")
     
@@ -122,31 +107,29 @@ def get_post(id: int):
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id:int):
 
-    index = find_index_post(id)
-
-    if not index:
+    cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (id,))
+    
+    post = cursor.fetchone()
+    conn.commit()
+    
+    if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id '{id}' doesn't exist!")
     
-    my_posts.pop(index)
-    
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return None # No response is necessary given the default status set in the decorator
 
 
 # UPDATE ONE POST BY ID
-@app.put("/posts/{id}")
+@app.put("/posts/{id}", status_code=status.HTTP_200_OK)
 def update_post(id: int, post: Post):
     
-    print(post)
-
-    index = find_index_post(id)
-
-    if not index:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id '{id}' doesn't exist!")
+    cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""", (post.title, post.content, post.published, id))
     
-    updated_post = post.model_dump()
-    updated_post['id'] = id
-    my_posts[index] = updated_post
+    post = cursor.fetchone()
+    conn.commit()
 
-    return {"data":updated_post}
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id '{id}' doesn't exist!")
+
+    return {"data":post}
 
 
