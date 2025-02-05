@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
 
-# Model Schema
+# Post Model Schema
 class PostBase(BaseModel):
 
     title: str
@@ -13,6 +13,12 @@ class PostBase(BaseModel):
 
 
 class PostCreate(PostBase):
+
+    """
+    We are leaving this schema as placeholder in case the creation os a new post requires
+    something specific additional to the PostBase    
+    """
+
     pass
 
 
@@ -25,13 +31,40 @@ class PostResponse(PostBase):
 
     # Pydantic setting to convert this class to a dict like response even when is not one
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 
 
+# User Model Schema
+class UserBase(BaseModel):
+
+    email: EmailStr
+    password: str
 
 
+
+
+class UserCreate(UserBase):
+    
+    """
+    We are leaving this schema as placeholder in case the creation os a new user requires
+    something specific additional to the UserBase    
+    """
+
+    pass
+
+
+
+class UserResponse(BaseModel):
+
+    id: int
+    email: EmailStr
+    created_at: datetime
+
+    # Pydantic setting to convert this class to a dict like response even when is not one
+    class Config:
+        from_attributes = True
 
 
 
