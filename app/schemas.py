@@ -10,18 +10,14 @@ class PostBase(BaseModel):
     published: bool = True
 
 
-
-
 class PostCreate(PostBase):
 
     """
-    We are leaving this schema as placeholder in case the creation os a new post requires
+    We are leaving this schema as placeholder in case the creation of a new post requires
     something specific additional to the PostBase    
     """
 
     pass
-
-
 
 
 class PostResponse(PostBase):
@@ -43,18 +39,14 @@ class UserBase(BaseModel):
     password: str
 
 
-
-
 class UserCreate(UserBase):
     
     """
-    We are leaving this schema as placeholder in case the creation os a new user requires
+    We are leaving this schema as placeholder in case the creation of a new user requires
     something specific additional to the UserBase    
     """
 
     pass
-
-
 
 class UserResponse(BaseModel):
 
@@ -65,6 +57,15 @@ class UserResponse(BaseModel):
     # Pydantic setting to convert this class to a dict like response even when is not one
     class Config:
         from_attributes = True
+
+class UserLogin(UserBase):
+
+    """
+    We are leaving this schema as placeholder in case the login of a new user requires
+    something specific additional to the UserBase    
+    """
+
+    pass
 
 
 
