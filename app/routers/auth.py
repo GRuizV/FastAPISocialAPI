@@ -24,10 +24,6 @@ router = APIRouter(tags=["Authentication"])
 @router.post('/login', status_code=status.HTTP_202_ACCEPTED)
 def login(user_credentials: schemas.UserLogin, db: Session = Depends(get_db)):
     
-    # # Hash the user attempted password
-    # hashed_password = utils.hash(user_credentials.password)
-    # user_credentials.password = hashed_password # Update the user credentials provided
-
     # Build the DB query
     user_query = db.query(models.User).filter(models.User.email == user_credentials.email)
 

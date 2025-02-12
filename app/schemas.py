@@ -51,13 +51,13 @@ class UserCreate(UserBase):
 class UserResponse(BaseModel):
 
     id: int
-    email: EmailStr
     created_at: datetime
 
     # Pydantic setting to convert this class to a dict like response even when is not one
     class Config:
         from_attributes = True
 
+#Schema to Validate Users when logging in
 class UserLogin(UserBase):
 
     """

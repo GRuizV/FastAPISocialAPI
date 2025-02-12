@@ -14,7 +14,7 @@ from typing import List
 
 
 # Create a Router for the app
-router = APIRouter(prefix="/post", tags=["Post"])
+router = APIRouter(prefix="/posts", tags=["Post"])
 
 
 
@@ -30,7 +30,7 @@ def get_posts(db: Session = Depends(get_db)):
 
 # CREATE ONE POST
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
-def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
+def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
     
     # The post unpacking (**) is doing the same as "title = post.title, content = post.content ..."
     new_post = models.Post(**post.model_dump())
