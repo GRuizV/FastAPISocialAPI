@@ -1,8 +1,21 @@
+
+
+# 3RD PARTY IMPORTS
 from pydantic import BaseModel, EmailStr
+
+
+# LOCAL IMPORTS
+...
+
+# BUILT-IN IMPORTS
 from datetime import datetime
+from typing import Optional
 
 
-# Post Model Schema
+
+
+
+# POST MODEL SCHEMAS
 class PostBase(BaseModel):
 
     title: str
@@ -32,7 +45,7 @@ class PostResponse(PostBase):
 
 
 
-# User Model Schema
+# USER MODEL SCHEMAS
 class UserBase(BaseModel):
 
     email: EmailStr
@@ -69,6 +82,16 @@ class UserLogin(UserBase):
 
 
 
+
+# TOKEN MODEL SCHEMA
+class Token(BaseModel):
+
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+
+    id: Optional[str] = None
 
 
 
