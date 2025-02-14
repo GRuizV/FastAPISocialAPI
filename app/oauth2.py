@@ -3,13 +3,15 @@
 from jose import JWTError, jwt
 from fastapi import Depends, status, HTTPException
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
 
 
 # LOCAL IMPORTS
-from app import schemas
+from app import schemas, models
+from app.database import get_db
 
 # BUILT-IN IMPORTS
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decouple import config
 
 
@@ -30,7 +32,7 @@ def create_access_token(data: dict):
     to_encode = data.copy()
 
     # Set an expiration date (in minutes) when authenticated
-    expire = datetime.utcnownow() + timedelta(minutes=ACCESS_TOKE_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKE_EXPIRE_MINUTES)
 
     # Update the 'exp' field in the data to be encoded
     to_encode["exp"] = expire
@@ -60,22 +62,30 @@ def verify_access_token(token: str, credentials_exception):
         # Token data validated
         token_data = schemas.TokenData(id=id)
 
-
-    except JWTError:
+    except JWTError as e:
+        print(e)
         raise credentials_exception
-
+    
     # Return the token data
     return token_data
 
 
 # Actually User Authentication Function
-def get_current_user(token:str = Depends(oauth2_scheme)):
+def get_current_user(token:str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
 
+    # Set the type of exception to be passed if the token validation fails
     credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, 
                                           detail=f"Could not validate credentials",
                                             headers={'WWW-Authenticate': "Bearer"} )
     
-    return verify_access_token(token=token, credentials_exception=credentials_exception)
+    # Store the response of the token verification
+    validated_token = verify_access_token(token=token, credentials_exception=credentials_exception)
+
+    # Call the actual user from the DB
+    user = db.query(models.User).where(models.User.id == validated_token.id).first()
+
+    # Return the actual authenticated User
+    return user
 
 
 
