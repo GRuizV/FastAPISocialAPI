@@ -6,6 +6,9 @@ from sqlalchemy.sql.sqltypes import TIMESTAMP
 from .database import Base
 
 
+
+
+# Posts DB Model Setting
 class Post(Base):
 
     __tablename__ = "posts"
@@ -19,6 +22,7 @@ class Post(Base):
 
 
 
+# Users DB Model Setting
 class User(Base):
 
     __tablename__ = "users"

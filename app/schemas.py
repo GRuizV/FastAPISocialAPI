@@ -1,5 +1,4 @@
 
-
 # 3RD PARTY IMPORTS
 from pydantic import BaseModel, EmailStr
 

@@ -17,7 +17,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Initial Hash Function
 def hash(password:str) -> str:
 
-    """This function has a password when a new user is created"""
+    """This function returns a hashed password when a new user is created"""
 
     return pwd_context.hash(password)
 
