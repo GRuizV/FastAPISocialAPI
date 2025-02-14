@@ -22,7 +22,7 @@ router = APIRouter(tags=["Authentication"])
 
 
 # LOGIN PATH OP
-@router.post('/login', status_code=status.HTTP_202_ACCEPTED)
+@router.post('/login', status_code=status.HTTP_202_ACCEPTED, response_model=schemas.Token)
 def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     
     # Build the DB query
@@ -42,7 +42,7 @@ def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session =
     # Create the token
     access_token = oauth2.create_access_token(data= {"user_id": user.id})
 
-    return {"token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 
