@@ -4,7 +4,7 @@ from fastapi import status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
 
 # LOCAL IMPORTS
-from app import schemas, models
+from app import schemas, models, oauth2
 from app.database import get_db
 
 # BUILT-IN IMPORTS
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/posts", tags=["Post"])
 
 # GET ALL POSTS
 @router.get("/", response_model=List[schemas.PostResponse])
-def get_posts(db: Session = Depends(get_db)):
+def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     posts_query = db.query(models.Post)
     posts = posts_query.all()
@@ -30,7 +30,7 @@ def get_posts(db: Session = Depends(get_db)):
 
 # CREATE ONE POST
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
-def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
+def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
     # The post unpacking (**) is doing the same as "title = post.title, content = post.content ..."
     new_post = models.Post(**post.model_dump())
@@ -43,7 +43,7 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
 
 # GET ONE POST BY ID
 @router.get("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.PostResponse)
-def get_post(id: int, db: Session = Depends(get_db)):
+def get_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     post_query = db.query(models.Post).filter(models.Post.id == id)
 
@@ -52,11 +52,13 @@ def get_post(id: int, db: Session = Depends(get_db)):
     
     post = post_query.first()
 
+    print(current_user.email)
+
     return post
 
 # DELETE ONE POST BY ID
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id:int, db: Session = Depends(get_db)):
+def delete_post(id:int, db: Session = Depends(get_db),  current_user: int = Depends(oauth2.get_current_user)):
 
     post_query = db.query(models.Post).filter(models.Post.id == id)
     
@@ -70,7 +72,7 @@ def delete_post(id:int, db: Session = Depends(get_db)):
 
 # UPDATE ONE POST BY ID
 @router.put("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.PostResponse)
-def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
+def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db),  current_user: int = Depends(oauth2.get_current_user)):
     
     post_query = db.query(models.Post).filter(models.Post.id == id)
    
