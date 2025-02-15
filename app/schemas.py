@@ -20,6 +20,7 @@ class PostBase(BaseModel):
     title: str
     content: str
     published: bool = True
+    owner_id: int
 
 
 class PostCreate(PostBase):
@@ -35,6 +36,7 @@ class PostCreate(PostBase):
 class PostResponse(PostBase):
 
     id: int
+    owner_id: int
     created_at: datetime
 
     # Pydantic setting to convert this class to a dict like response even when is not one
