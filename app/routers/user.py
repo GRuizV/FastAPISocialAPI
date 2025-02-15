@@ -4,7 +4,7 @@ from fastapi import status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
 
 # LOCAL IMPORTS
-from app import schemas, models, utils
+from app import schemas, models, utils, oauth2
 from app.database import get_db
 
 # BUILT-IN IMPORTS
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 # GET ALL USERS
 @router.get("/", response_model=List[schemas.UserResponse])
-def get_users(db: Session = Depends(get_db)):
+def get_users(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     # Users query setting
     users_query = db.query(models.User)
@@ -34,7 +34,7 @@ def get_users(db: Session = Depends(get_db)):
 
 # CREATE ONE USER
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
     # Hash the password passed by the Client
     hashed_password = utils.hash(user.password)
@@ -59,7 +59,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 # GET ONE USER BY ID
 @router.get("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.UserResponse)
-def get_user(id: int, db: Session = Depends(get_db)):
+def get_user(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     # Create the user query matching the id passed in the URL
     user_query = db.query(models.User).filter(models.User.id == id)
@@ -76,7 +76,7 @@ def get_user(id: int, db: Session = Depends(get_db)):
 
 # DELETE ONE USER BY ID
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(id: int, db: Session = Depends(get_db)):
+def delete_user(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
 
     # Create the user query matching the id passed in the URL
     user_query = db.query(models.User).filter(models.User.id == id)
@@ -95,7 +95,7 @@ def delete_user(id: int, db: Session = Depends(get_db)):
 
 # UPDATE ONE USER BY ID
 @router.put("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.UserResponse)
-def update_user(id: int, user: schemas.UserCreate, db: Session = Depends(get_db)):
+def update_user(id: int, user: schemas.UserCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
     # Hash the password passed by the Client
     hashed_password = utils.hash(user.password)
