@@ -21,7 +21,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 # GET ALL USERS
 @router.get("/", response_model=List[schemas.UserResponse])
-def get_users(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def get_users(db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
 
     # Users query setting
     users_query = db.query(models.User)
@@ -34,7 +34,7 @@ def get_users(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
 
 # CREATE ONE USER
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
     
     # Hash the password passed by the Client
     hashed_password = utils.hash(user.password)
@@ -59,32 +59,39 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current
 
 # GET ONE USER BY ID
 @router.get("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.UserResponse)
-def get_user(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def get_user(id: int, db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
 
     # Create the user query matching the id passed in the URL
     user_query = db.query(models.User).filter(models.User.id == id)
 
-    # User look up guard (Actual query execution)
-    if not user_query.first():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id '{id}' was not found!")
-    
-    # Store the executed user query in a variable
+    # Get the user matched
     user = user_query.first()
 
+    # User look up guard (Actual query execution)
+    if not user.first():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id '{id}' was not found!")
+    
     # Return the found user back to the Client
     return user
 
 # DELETE ONE USER BY ID
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def delete_user(id: int, db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
 
     # Create the user query matching the id passed in the URL
     user_query = db.query(models.User).filter(models.User.id == id)
+
+    # Get the user matched
+    user = user_query.first()
     
     # User look up guard (Actual query execution)
-    if not user_query.first():
+    if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id '{id}' doesn't exist!")
     
+    # Authentication guard (The owner of the post is the one deleting it)
+    if user.id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Unauthorized! Only the owner of the account can alter it!")
+
     # Execute the user query to delete it from the DB
     user_query.delete(synchronize_session = False)
 
@@ -95,23 +102,30 @@ def delete_user(id: int, db: Session = Depends(get_db), current_user: int = Depe
 
 # UPDATE ONE USER BY ID
 @router.put("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.UserResponse)
-def update_user(id: int, user: schemas.UserCreate, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def update_user(id: int, user_update: schemas.UserCreate, db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
     
     # Hash the password passed by the Client
-    hashed_password = utils.hash(user.password)
+    hashed_password = utils.hash(user_update.password)
 
     # Update the password hashed
-    user.password = hashed_password
+    user_update.password = hashed_password
 
     # Create the user query matching the id passed in the URL
     user_query = db.query(models.User).filter(models.User.id == id)
+
+    # Get the user matched
+    auth_user = user_query.first()
    
     # User look up guard (Actual query execution)
     if not user_query.first():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id '{id}' doesn't exist!")
 
+    # Authentication guard (The owner of the post is the one deleting it)
+    if auth_user.id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Unauthorized! Only the owner of the account can alter it!")
+    
     # Execute the user query to update it in the DB
-    user_query.update(user.model_dump(), synchronize_session = False)
+    user_query.update(user_update.model_dump(), synchronize_session = False)
 
     # Commit the change to the DB
     db.commit()
