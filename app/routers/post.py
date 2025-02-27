@@ -8,7 +8,7 @@ from app import schemas, models, oauth2
 from app.database import get_db
 
 # BUILT-IN IMPORTS
-from typing import List
+from typing import List, Optional
 
 
 
@@ -21,10 +21,11 @@ router = APIRouter(prefix="/posts", tags=["Post"])
 
 # GET ALL POSTS
 @router.get("/", response_model=List[schemas.PostResponse])
-def get_posts(db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
+def get_posts(db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user),
+              limit: int = 10, skip: int = 0, search: Optional[str] = ""):
 
     # Posts query setting
-    posts_query = db.query(models.Post)
+    posts_query = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip)
     
     # Posts query execution and storing into 'posts'
     posts = posts_query.all()
