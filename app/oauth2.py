@@ -18,8 +18,8 @@ from decouple import config
 
 # Constants & Variables Definition
 SECRET_KEY = config('SECRET_KEY')
-ALGORITHM = "HS256"
-ACCESS_TOKE_EXPIRE_MINUTES = 30
+ALGORITHM = config('ALGORITHM')
+ACCESS_TOKE_EXPIRE_MINUTES = int(config('ACCESS_TOKE_EXPIRE_MINUTES'))
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 
 
