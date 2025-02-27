@@ -14,8 +14,10 @@ from typing import Generator
 DB_USER = config('DB_USER')
 DB_NAME = config('DB_NAME')
 DB_PASS = config('DB_PASS')
+DB_HOSTNAME = config('DB_HOSTNAME')
+DB_PORT = config('DB_PORT')
 
-SQLALCHEMY_DATABASE_URL = f'postgresql://{DB_USER}:{DB_PASS}@localhost/{DB_NAME}'
+SQLALCHEMY_DATABASE_URL = f'postgresql://{DB_USER}:{DB_PASS}@{DB_HOSTNAME}:{DB_PORT}/{DB_NAME}'
 
 
 # SQLALCHEMY ORM SETTING
