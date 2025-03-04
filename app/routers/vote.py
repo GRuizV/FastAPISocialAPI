@@ -8,7 +8,7 @@ from app import schemas, models, oauth2
 from app.database import get_db
 
 # BUILT-IN IMPORTS
-from typing import List
+...
 
 
 

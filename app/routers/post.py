@@ -22,7 +22,6 @@ router = APIRouter(prefix="/posts", tags=["Post"])
 
 # GET ALL POSTS
 @router.get("/", response_model=List[schemas.PostVoteResponse])
-# @router.get("/")
 def get_posts(db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user),
               limit: int = 10, skip: int = 0, search: Optional[str] = ""):
 
