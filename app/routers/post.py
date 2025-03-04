@@ -1,6 +1,7 @@
 
 # 3RD PARTY IMPORTS
 from fastapi import status, HTTPException, Depends, APIRouter
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 # LOCAL IMPORTS
@@ -20,18 +21,27 @@ router = APIRouter(prefix="/posts", tags=["Post"])
 
 
 # GET ALL POSTS
-@router.get("/", response_model=List[schemas.PostResponse])
+@router.get("/", response_model=List[schemas.PostVoteResponse])
+# @router.get("/")
 def get_posts(db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user),
               limit: int = 10, skip: int = 0, search: Optional[str] = ""):
 
     # Posts query setting
-    posts_query = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip)
+    posts_query = db.query(models.Post, func.count(models.Vote.post_id).label("votes"))\
+        .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)\
+        .group_by(models.Post.id)\
+        .filter(models.Post.title.contains(search))\
+        .limit(limit)\
+        .offset(skip)
     
-    # Posts query execution and storing into 'posts'
+    # Execute the Posts query
     posts = posts_query.all()
 
-    # Return all posts found in the DB
-    return posts
+    # Convert each SQLAlchemy model to a dictionary using Pydantic
+    result = [{"Post": schemas.PostResponse.model_validate(post), "votes": votes} for post, votes in posts]
+  
+    # Return all posts found in the DB as a list of dicts
+    return result
 
 # CREATE ONE POST
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
@@ -53,11 +63,14 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current
     return new_post
 
 # GET ONE POST BY ID
-@router.get("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.PostResponse)
+@router.get("/{id}", status_code=status.HTTP_200_OK, response_model=schemas.PostVoteResponse)
 def get_post(id: int, db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
 
     # Create the post query matching the id passed in the URL
-    post_query = db.query(models.Post).filter(models.Post.id == id)
+    post_query = db.query(models.Post, func.count(models.Vote.post_id).label("votes"))\
+        .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)\
+        .group_by(models.Post.id)\
+        .filter(models.Post.id == id)
 
     # Get the post matched
     post = post_query.first()
