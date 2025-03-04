@@ -1,6 +1,7 @@
 
 # 3RD PARTY IMPORTS
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, conint
+from typing_extensions import Annotated
 
 
 # LOCAL IMPORTS
@@ -19,7 +20,6 @@ class UserBase(BaseModel):
 
     email: EmailStr
     password: str
-
 
 class UserCreate(UserBase):
     
@@ -72,7 +72,6 @@ class PostBase(BaseModel):
     content: str
     published: bool = True
 
-
 class PostCreate(PostBase):
 
     """
@@ -81,7 +80,6 @@ class PostCreate(PostBase):
     """
 
     pass
-
 
 class PostResponse(PostBase):
 
@@ -93,3 +91,14 @@ class PostResponse(PostBase):
     # Pydantic setting to convert this class to a dict like response even when is not one
     class Config:
         from_attributes = True
+
+
+
+
+# VOTE MODEL SCHEMAS
+class Vote(BaseModel):
+
+    post_id: int
+    dir: Annotated[int, Field(strict=True, le=1)]   # This line is to make sure is either 0 or 1
+    
+        
