@@ -92,6 +92,14 @@ class PostResponse(PostBase):
     class Config:
         from_attributes = True
 
+class PostVoteResponse(BaseModel):
+
+    Post: PostResponse
+    votes: int
+   
+    # Pydantic setting to convert this class to a dict like response even when is not one
+    class Config:
+        from_attributes = True
 
 
 
