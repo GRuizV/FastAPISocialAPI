@@ -12,9 +12,8 @@ from .routers import post, user, auth, vote
 
 
 
-
-# Sentence to Create all tables in the database
-models.Base.metadata.create_all(bind=database.engine)
+# # Sentence to Create all tables in the database
+# models.Base.metadata.create_all(bind=database.engine) # NO LONGER NEEDED GIVEN THAT ALEMBIC IS MANAGING THE TABLES CREATION-
 
 
 # Set up the server app
