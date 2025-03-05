@@ -34,7 +34,7 @@ def get_users(db: Session = Depends(get_db), current_user = Depends(oauth2.get_c
 
 # CREATE ONE USER
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current_user = Depends(oauth2.get_current_user)):
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     
     # Hash the password passed by the Client
     hashed_password = utils.hash(user.password)
